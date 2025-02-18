@@ -3,6 +3,7 @@ from typing import Any
 from typing import Callable
 from typing import List
 from typing import Union
+from typing import Optional
 
 from notion_client import Client
 
@@ -39,6 +40,7 @@ def add_publications_to_database(
         publications: List[Publication],
         token: str,
         database_id: str,
+        pdf_path: Optional[str] = None,
 ) -> None:
     # todo retrieve the list of all the property and filter
     # todo update_database_with_publications check the empty fields and fill them
@@ -73,6 +75,7 @@ def add_publications_to_database(
                 stacklevel=0,
             )
             bibtex = bibtex[:2000]
+
         client.pages.create(
             parent={'database_id': database_id},
             properties={
@@ -87,6 +90,7 @@ def add_publications_to_database(
                 'Inbox': Property.checkbox(True),
                 'Type': Property.select(publication.type),
                 'DOI': Property.rich_text(publication.doi),
+                'File_link': Property.url("http://localhost:3069/open?file=/home/fryderyk/Documents/ref_man_test/potje2024xfeat.pdf") if pdf_path else "",
             },
         )
 

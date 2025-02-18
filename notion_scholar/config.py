@@ -17,22 +17,27 @@ class ConfigException(NotionScholarException):
 
 class ConfigManager:
     """Class that manages all the notion-scholar configuration."""
+
     def __init__(
             self,
             token: Optional[str] = None,
             string: Optional[str] = None,
             file_path: Optional[str] = None,
             database_id: Optional[str] = None,
+            pdf_path: Optional[str] = None,
     ):
         self.token = token
         self.string = string
         self.file_path = file_path
         self.database_id = database_id
+        self.pdf_path = pdf_path
 
         directory_path = Path(user_config_dir(appname='notion-scholar'))
-        self.config_path = directory_path.joinpath('config').with_suffix('.ini')
+        self.config_path = directory_path.joinpath(
+            'config').with_suffix('.ini')
 
     def get_download_kwargs(self) -> dict:
+
         return {
             'file_path': coerce_to_absolute_path(path=self.file_path),
             **self._get_sanitized_kwargs()
@@ -46,13 +51,16 @@ class ConfigManager:
             file_path = coerce_to_absolute_path(path=file_path)
 
             if not Path(file_path).exists():
-                raise ConfigException("The file_path provided to the argparse does not exist.")
+                raise ConfigException(
+                    "The file_path provided to the argparse does not exist.")
         elif self.string is None:
             file_path = config.get('file_path', None)
             if file_path is None:
-                raise ConfigException("No file_path or bib string provided and no file path set in the config.")
+                raise ConfigException(
+                    "No file_path or bib string provided and no file path set in the config.")
             if not Path(file_path).exists():
-                raise ConfigException("No file_path or bib string provided and the file_path set in the config does not exist.")
+                raise ConfigException(
+                    "No file_path or bib string provided and the file_path set in the config does not exist.")
 
         return {
             'bib_string': self.string,
@@ -89,7 +97,8 @@ class ConfigManager:
 
         # Void the file_path argument if the file doesn't exist
         if self.file_path is not None:
-            self.file_path = coerce_to_absolute_path(path=self.file_path, warn=True)
+            self.file_path = coerce_to_absolute_path(
+                path=self.file_path, warn=True)
 
             if not Path(self.file_path).exists():
                 warnings.warn(
@@ -137,7 +146,7 @@ class ConfigManager:
             print(f'{key}: {value}')
 
     def get(self) -> Dict[str, str]:
-        if not self.config_path.is_file(): # todo check if is a file and exist + right section
+        if not self.config_path.is_file():  # todo check if is a file and exist + right section
             return {}
         else:
             config = ConfigParser()

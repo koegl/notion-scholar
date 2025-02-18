@@ -21,15 +21,18 @@ def run(
         database_id: str,
         bib_file_path: Optional[str] = None,
         bib_string: Optional[str] = None,
+        pdf_path: Optional[str] = None,
 ) -> int:
     if bib_string is not None:
-        bib_database: BibDatabase = get_bib_database_from_string(string=bib_string)
+        bib_database: BibDatabase = get_bib_database_from_string(
+            string=bib_string)
 
     elif bib_file_path is not None:
         bib_database = get_bib_database_from_file(file_path=bib_file_path)
 
     else:
-        raise IllegalArgumentException('Must provide a "string" or a "file_path"')
+        raise IllegalArgumentException(
+            'Must provide a "string" or a "file_path"')
 
     publication_list: List[Publication] = get_publication_list(bib_database)
     key_list = get_publication_key_list_from_database(
@@ -42,9 +45,16 @@ def run(
         publications=publication_list_filtered,
         token=token,
         database_id=database_id,
+        pdf_path=pdf_path
     )
 
     if not publication_list_filtered and publication_list:
         print('\nAll the publications are already present in the database.')
+    else:
+        # append to file
+        if bib_file_path is not None and bib_string is not None:
+            with open(bib_file_path, 'a', encoding='utf-8') as f:
+                f.write("\n\n")
+                f.write(bib_string)
 
     return 0

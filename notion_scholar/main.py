@@ -43,6 +43,19 @@ def get_parser():
              f'https://www.notion.so/{{workspace_name}}/{{database_id}}?v={{view_id}} \n'
              f'(default: {config.get("database_id", None)})',
     )
+    run_parser.add_argument(
+        '-s', '--string',
+        default=None, type=str, metavar='',
+        help='Bibtex entries to add (must be in-between three quotes \"\"\"<bib-string>\"\"\"). '
+             'By default, the entries will be saved to the bib file from the config. '
+             'It is possible to disable this behavior by changing the "save" option: "ns setup -save false".',
+    )
+    run_parser.add_argument(
+        '-pdf', '--pdf_path',
+        default=None, type=str, metavar='',
+        help='Path to the pdf file.',
+        required=False,
+    )
 
     if config.get('file_path', None) is None:
         group = run_parser.add_mutually_exclusive_group(required=True)
@@ -55,13 +68,6 @@ def get_parser():
         help=f'Bib file that will be used. This argument is required if the bib file is not saved in the config and no bib-string is passed. \n'
              f'(default: {config.get("bib_file_path", None)})',  # noqa: E501
     )
-    group.add_argument(
-        '-s', '--string',
-        default=None, type=str, metavar='',
-        help='Bibtex entries to add (must be in-between three quotes \"\"\"<bib-string>\"\"\"). '
-             'By default, the entries will be saved to the bib file from the config. '
-             'It is possible to disable this behavior by changing the "save" option: "ns setup -save false".',
-    )
 
     # Download bibtex parser
     download_parser = subparsers.add_parser(
@@ -70,7 +76,7 @@ def get_parser():
     )
     download_parser.add_argument(
         '-f', '--file-path',
-        default=None, type=str, metavar='', required=True,
+        default=None, type=str, metavar='', required=False,
         help='File in which the bibtex entries will be saved.',
     )
     download_parser.add_argument(
@@ -150,17 +156,38 @@ def main() -> int:
     if need_token_or_database_id[mode]:
         token = get_token()
         if token is None and 'token' in arguments and arguments.token is None:
-            parser.error("Error: The '--token' argument is required but not provided nor saved.")
+            parser.error(
+                "Error: The '--token' argument is required but not provided nor saved.")
 
         config = config_manager.get()
         if config.get('database_id', None) is None and 'database_id' in arguments and arguments.database_id is None:
-            parser.error("Error: The '--database-id' argument is required but not provided nor saved.")
+            parser.error(
+                "Error: The '--database-id' argument is required but not provided nor saved.")
 
     if mode == 'run':
-        return run(**config_manager.get_run_kwargs())
+
+        config = config_manager.get()
+
+        token = get_token()
+
+        if token is None:
+            parser.error(
+                "Error: The '--token' argument is required but not provided nor saved.")
+
+        return run(token,
+                   config["database_id"],
+                   config.get("file_path"),
+                   arguments.string,
+                   arguments.pdf_path)
 
     elif mode == 'download':
-        return download(**config_manager.get_download_kwargs())
+
+        config = config_manager.get()
+        return download(config["file_path"],
+                        config["token"],
+                        config["database_id"])
+
+        # return download(**config_manager.get_download_kwargs())
 
     elif mode == 'set-config':
         config_manager.setup()
@@ -176,3 +203,7 @@ def main() -> int:
 
     else:
         raise NotImplementedError('Invalid mode.')
+
+
+if __name__ == '__main__':
+    sys.exit(main())
