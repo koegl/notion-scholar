@@ -90,7 +90,7 @@ def add_publications_to_database(
                 'Inbox': Property.checkbox(True),
                 'Type': Property.select(publication.type),
                 'DOI': Property.rich_text(publication.doi),
-                'File_link': Property.url("http://localhost:3069/open?file=/home/fryderyk/Documents/ref_man_test/potje2024xfeat.pdf") if pdf_path else "",
+                'File_link': Property.url(f"http://localhost:3069/open?file={pdf_path}") if pdf_path else "",
             },
         )
 
